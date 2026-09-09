@@ -51,9 +51,10 @@ app.mount(
 def get_db():
 
     return mysql.connector.connect(
-        host="localhost",
-        port=3306,
-        user="root",
+        host="mysql-8e81ffd-sh251200.b.aivencloud.com",
+        port=17785,
+        user="avnadmin",
+        password=os.getenv("DB_PASSWORD"),
 
         # 기존에 사용하던 MySQL 비밀번호 그대로 입력
         password="1234",
