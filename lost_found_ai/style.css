@@ -1,0 +1,364 @@
+/* ==========================================
+   전체 기본 설정
+========================================== */
+
+* {
+    box-sizing: border-box;
+}
+
+body {
+    margin: 0;
+    font-family: Arial, sans-serif;
+    background-color: #f5f7fa;
+    color: #222;
+}
+
+
+/* ==========================================
+   상단 헤더
+========================================== */
+
+header {
+    width: 100%;
+    height: 70px;
+    background-color: white;
+
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+
+    padding: 0 60px;
+
+    border-bottom: 1px solid #e5e5e5;
+}
+
+.logo {
+    font-size: 22px;
+    font-weight: bold;
+}
+
+nav {
+    display: flex;
+    gap: 30px;
+}
+
+nav a {
+    text-decoration: none;
+    color: #333;
+    font-size: 15px;
+}
+
+nav a:hover {
+    color: #4f46e5;
+}
+
+
+/* ==========================================
+   메인 영역
+========================================== */
+
+main {
+    width: 90%;
+    max-width: 1200px;
+
+    margin: 0 auto;
+
+    padding: 60px 0;
+}
+
+
+/* ==========================================
+   페이지 제목
+========================================== */
+
+.page-title {
+    text-align: center;
+
+    margin-bottom: 40px;
+}
+
+.page-title h1 {
+    font-size: 36px;
+
+    margin-bottom: 15px;
+}
+
+.page-title p {
+    color: #666;
+
+    font-size: 16px;
+}
+
+
+/* ==========================================
+   분실물 / 습득물 목록
+========================================== */
+
+.lost-items {
+    display: grid;
+
+    grid-template-columns: repeat(3, 1fr);
+
+    gap: 25px;
+
+    margin-top: 30px;
+}
+
+
+/* ==========================================
+   카드
+========================================== */
+
+.lost-card {
+    background-color: white;
+
+    border: 1px solid #e5e5e5;
+
+    border-radius: 12px;
+
+    overflow: hidden;
+
+    box-shadow: 0 3px 10px rgba(0, 0, 0, 0.05);
+}
+
+
+/* ==========================================
+   ★ 사진 영역 - 100px
+========================================== */
+
+.lost-image {
+    width: 100%;
+
+    height: 100px;
+
+    overflow: hidden;
+
+    display: flex;
+
+    align-items: center;
+
+    justify-content: center;
+
+    background-color: #f1f3f5;
+}
+
+
+/* ==========================================
+   ★ 사진
+========================================== */
+
+.lost-image img {
+    width: 100%;
+
+    height: 100%;
+
+    object-fit: cover;
+
+    display: block;
+}
+
+
+/* ==========================================
+   카드 정보
+========================================== */
+
+.lost-info {
+    padding: 20px;
+}
+
+.lost-info h2 {
+    margin: 0 0 15px 0;
+
+    font-size: 20px;
+}
+
+.lost-info p {
+    margin: 8px 0;
+
+    color: #555;
+
+    font-size: 14px;
+
+    line-height: 1.5;
+}
+
+
+/* ==========================================
+   등록번호
+========================================== */
+
+.lost-id {
+    margin-top: 15px;
+
+    padding-top: 12px;
+
+    border-top: 1px solid #eee;
+
+    color: #888;
+
+    font-size: 13px;
+}
+
+
+/* ==========================================
+   등록된 데이터가 없을 때
+========================================== */
+
+.empty-message {
+    text-align: center;
+
+    padding: 60px 20px;
+
+    background-color: white;
+
+    border-radius: 12px;
+}
+
+.empty-message h2 {
+    margin-bottom: 10px;
+}
+
+.empty-message p {
+    color: #777;
+}
+
+
+/* ==========================================
+   등록 폼
+========================================== */
+
+form {
+    max-width: 600px;
+
+    margin: 0 auto;
+
+    background-color: white;
+
+    padding: 35px;
+
+    border-radius: 12px;
+
+    box-shadow: 0 3px 10px rgba(0, 0, 0, 0.05);
+}
+
+form > div {
+    margin-bottom: 20px;
+}
+
+label {
+    display: block;
+
+    margin-bottom: 8px;
+
+    font-weight: bold;
+}
+
+input[type="text"],
+input[type="date"],
+input[type="file"],
+textarea {
+    width: 100%;
+
+    padding: 12px;
+
+    border: 1px solid #ddd;
+
+    border-radius: 8px;
+
+    font-size: 14px;
+}
+
+textarea {
+    height: 120px;
+
+    resize: vertical;
+}
+
+
+/* ==========================================
+   등록 버튼
+========================================== */
+
+button {
+    width: 100%;
+
+    padding: 14px;
+
+    border: none;
+
+    border-radius: 8px;
+
+    background-color: #4f46e5;
+
+    color: white;
+
+    font-size: 16px;
+
+    font-weight: bold;
+
+    cursor: pointer;
+}
+
+button:hover {
+    background-color: #3730a3;
+}
+
+
+/* ==========================================
+   태블릿
+========================================== */
+
+@media (max-width: 900px) {
+
+    header {
+        padding: 0 30px;
+    }
+
+    .lost-items {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+
+/* ==========================================
+   스마트폰
+========================================== */
+
+@media (max-width: 600px) {
+
+    header {
+        height: auto;
+
+        padding: 20px;
+
+        flex-direction: column;
+
+        gap: 15px;
+    }
+
+    nav {
+        gap: 15px;
+
+        flex-wrap: wrap;
+
+        justify-content: center;
+    }
+
+    main {
+        width: 92%;
+
+        padding: 40px 0;
+    }
+
+    .page-title h1 {
+        font-size: 28px;
+    }
+
+    .lost-items {
+        grid-template-columns: 1fr;
+    }
+
+    .lost-image {
+        height: 100px;
+    }
+}

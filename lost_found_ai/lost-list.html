@@ -1,0 +1,311 @@
+<!DOCTYPE html>
+<html lang="ko">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>분실물 목록</title>
+
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+
+<header>
+
+    <div class="logo">
+        AI 분실물 매칭
+    </div>
+
+    <nav>
+
+        <a href="index.html">홈</a>
+
+        <a href="lost-list.html">분실물 찾기</a>
+
+        <a href="lost.html">분실물 등록</a>
+
+        <a href="found.html">습득물 등록</a>
+
+        <a href="match.html">AI 매칭</a>
+
+        <a href="#">로그인</a>
+
+    </nav>
+
+</header>
+
+
+<main>
+
+    <section class="page-title">
+
+        <h1>등록된 분실물</h1>
+
+        <p>
+            등록된 분실물 정보를 확인할 수 있습니다.
+        </p>
+
+    </section>
+
+
+    <section
+        id="lostItems"
+        class="lost-items">
+
+    </section>
+
+</main>
+
+
+<script>
+
+async function loadLostItems() {
+
+    const container =
+        document.getElementById("lostItems");
+
+
+    try {
+
+        const response =
+            await fetch(
+                "http://127.0.0.1:8000/lost-items"
+            );
+
+
+        const items =
+            await response.json();
+
+
+        if (items.length === 0) {
+
+            container.innerHTML = `
+
+                <div class="empty-message">
+
+                    <h2>
+                        등록된 분실물이 없습니다.
+                    </h2>
+
+                    <p>
+                        새로운 분실물을 등록해주세요.
+                    </p>
+
+                </div>
+
+            `;
+
+            return;
+        }
+
+
+        container.innerHTML = "";
+
+
+        items.forEach(item => {
+
+            const imageUrl =
+                item.image_path
+                    ? "http://127.0.0.1:8000/uploads/"
+                      + item.image_path.split("\\").pop()
+                    : "";
+
+
+            const card =
+                document.createElement("div");
+
+
+            card.className = "lost-card";
+
+
+            card.innerHTML = `
+
+                <div class="lost-image">
+
+                    ${
+                        imageUrl
+
+                        ?
+
+                        `<img
+                            src="${imageUrl}"
+                            alt="${item.item_name}">
+                        `
+
+                        :
+
+                        `<p>사진 없음</p>`
+                    }
+
+                </div>
+
+
+                <div class="lost-info">
+
+                    <h2>
+                        ${item.item_name}
+                    </h2>
+
+
+                    <p>
+                        📍 장소:
+                        ${item.location}
+                    </p>
+
+
+                    <p>
+                        📅 분실 날짜:
+                        ${item.lost_date}
+                    </p>
+
+
+                    <p>
+                        📝 설명:
+                        ${item.description || "없음"}
+                    </p>
+
+
+                    <div class="lost-id">
+
+                        등록번호:
+                        ${item.id}
+
+                    </div>
+
+
+                    <!-- 삭제 버튼 -->
+
+                    <button
+                        onclick="deleteLostItem(${item.id})"
+                        style="
+                            margin-top: 15px;
+                            background-color: #dc2626;
+                        ">
+
+                        삭제
+
+                    </button>
+
+                </div>
+
+            `;
+
+
+            container.appendChild(card);
+
+        });
+
+    }
+
+
+    catch (error) {
+
+        console.error(error);
+
+
+        container.innerHTML = `
+
+            <div class="empty-message">
+
+                <h2>
+                    데이터를 불러오지 못했습니다.
+                </h2>
+
+                <p>
+                    서버가 실행 중인지 확인해주세요.
+                </p>
+
+            </div>
+
+        `;
+
+    }
+
+}
+
+
+
+async function deleteLostItem(id) {
+
+    const confirmDelete =
+        confirm(
+            "정말 이 분실물을 삭제하시겠습니까?"
+        );
+
+
+    if (!confirmDelete) {
+
+        return;
+
+    }
+
+
+    try {
+
+        const response =
+            await fetch(
+
+                `http://127.0.0.1:8000/lost-items/${id}`,
+
+                {
+                    method: "DELETE"
+                }
+
+            );
+
+
+        const result =
+            await response.json();
+
+
+        if (response.ok) {
+
+            alert(
+                "분실물이 삭제되었습니다."
+            );
+
+
+            // 목록 다시 불러오기
+
+            loadLostItems();
+
+        }
+
+
+        else {
+
+            alert(
+                result.detail ||
+                "삭제에 실패했습니다."
+            );
+
+        }
+
+    }
+
+
+    catch (error) {
+
+        console.error(error);
+
+
+        alert(
+            "서버와 연결할 수 없습니다."
+        );
+
+    }
+
+}
+
+
+
+loadLostItems();
+
+</script>
+
+
+</body>
+
+</html>

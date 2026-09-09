@@ -1,0 +1,1222 @@
+<!DOCTYPE html>
+<html lang="ko">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>AI 분실물 매칭</title>
+
+    <link rel="stylesheet" href="style.css">
+
+    <style>
+        /* ==============================
+           AI 매칭 전용 스타일
+        ============================== */
+
+        .match-section {
+            max-width: 900px;
+            margin: 0 auto 30px auto;
+            background: white;
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 3px 10px rgba(0, 0, 0, 0.05);
+        }
+
+        .match-section h2 {
+            margin-top: 0;
+            margin-bottom: 20px;
+        }
+
+        #lostSelect {
+            width: 100%;
+            padding: 14px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            font-size: 15px;
+            background: white;
+            margin-bottom: 15px;
+        }
+
+        #matchButton {
+            width: 100%;
+        }
+
+        #matchButton:disabled {
+            background-color: #999;
+            cursor: not-allowed;
+        }
+
+        .selected-lost-card {
+            display: flex;
+            gap: 25px;
+            align-items: center;
+        }
+
+        .selected-lost-image {
+            width: 180px;
+            height: 180px;
+            flex-shrink: 0;
+            border-radius: 12px;
+            overflow: hidden;
+            background-color: #f1f3f5;
+        }
+
+        .selected-lost-image img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .selected-lost-info h2 {
+            margin-bottom: 15px;
+        }
+
+        .selected-lost-info p {
+            margin: 8px 0;
+            color: #555;
+        }
+
+        .result-summary {
+            padding: 18px;
+            background-color: #f5f7fa;
+            border-radius: 10px;
+            margin-bottom: 25px;
+            text-align: center;
+            color: #555;
+        }
+
+        .match-results-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 20px;
+        }
+
+        .match-card {
+            background-color: white;
+            border: 1px solid #e5e5e5;
+            border-radius: 12px;
+            overflow: hidden;
+        }
+
+        .match-card-image {
+            width: 100%;
+            height: 180px;
+            background-color: #f1f3f5;
+            overflow: hidden;
+        }
+
+        .match-card-image img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .match-card-info {
+            padding: 20px;
+        }
+
+        .match-card-top {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px;
+        }
+
+        .match-rank {
+            font-size: 14px;
+            font-weight: bold;
+            color: #666;
+        }
+
+        .match-grade {
+            padding: 6px 10px;
+            border-radius: 20px;
+            color: white;
+            font-size: 12px;
+            font-weight: bold;
+        }
+
+        .match-card-info h3 {
+            margin: 0 0 12px 0;
+            font-size: 20px;
+        }
+
+        .match-card-info p {
+            margin: 7px 0;
+            color: #555;
+            font-size: 14px;
+            line-height: 1.5;
+        }
+
+        .similarity-box {
+            margin-top: 18px;
+            padding: 15px;
+            background-color: #f8fafc;
+            border-radius: 10px;
+            border: 1px solid #e5e7eb;
+        }
+
+        .similarity-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+
+        .similarity-title {
+            font-size: 14px;
+            font-weight: bold;
+        }
+
+        .similarity-number {
+            font-size: 24px;
+            font-weight: bold;
+        }
+
+        .similarity-bar {
+            width: 100%;
+            height: 10px;
+            background-color: #e5e7eb;
+            border-radius: 10px;
+            overflow: hidden;
+        }
+
+        .similarity-progress {
+            height: 100%;
+            border-radius: 10px;
+        }
+
+        .similarity-description {
+            margin-top: 10px;
+            font-size: 13px;
+            font-weight: bold;
+        }
+
+        .no-result {
+            text-align: center;
+            padding: 40px 20px;
+            color: #777;
+        }
+
+        .loading-box {
+            text-align: center;
+            padding: 40px 20px;
+        }
+
+        .loading-box h3 {
+            margin-bottom: 10px;
+        }
+
+        .loading-box p {
+            color: #777;
+        }
+
+        @media (max-width: 700px) {
+
+            .selected-lost-card {
+                flex-direction: column;
+                align-items: stretch;
+            }
+
+            .selected-lost-image {
+                width: 100%;
+                height: 220px;
+            }
+
+            .match-results-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .match-section {
+                padding: 20px;
+            }
+        }
+    </style>
+
+</head>
+
+
+<body>
+
+
+<header>
+
+    <div class="logo">
+        AI 분실물 매칭
+    </div>
+
+
+    <nav>
+
+        <a href="index.html">
+            홈
+        </a>
+
+        <a href="lost-list.html">
+            분실물 찾기
+        </a>
+
+        <a href="lost.html">
+            분실물 등록
+        </a>
+
+        <a href="found.html">
+            습득물 등록
+        </a>
+
+        <a href="match.html">
+            AI 매칭
+        </a>
+
+        <a href="#">
+            로그인
+        </a>
+
+    </nav>
+
+</header>
+
+
+<main>
+
+
+    <!-- ==============================
+         페이지 제목
+    ============================== -->
+
+    <div class="page-title">
+
+        <h1>
+            AI 분실물 매칭
+        </h1>
+
+        <p>
+            등록된 분실물과 습득물의 이미지를 AI가 비교합니다.
+        </p>
+
+    </div>
+
+
+
+    <!-- ==============================
+         분실물 선택
+    ============================== -->
+
+    <section class="match-section">
+
+        <h2>
+            1. 분실물 선택
+        </h2>
+
+
+        <select id="lostSelect">
+
+            <option value="">
+                분실물을 선택해주세요
+            </option>
+
+        </select>
+
+
+        <button
+            id="matchButton"
+            onclick="startMatching()">
+
+            AI 매칭 시작
+
+        </button>
+
+    </section>
+
+
+
+    <!-- ==============================
+         선택한 분실물
+    ============================== -->
+
+    <section
+        id="lostInfo"
+        class="match-section"
+        style="display: none;">
+
+        <h2>
+            2. 선택한 분실물
+        </h2>
+
+
+        <div id="lostItemInfo"></div>
+
+    </section>
+
+
+
+    <!-- ==============================
+         AI 결과
+    ============================== -->
+
+    <section
+        id="resultSection"
+        class="match-section"
+        style="display: none;">
+
+        <h2>
+            3. AI 매칭 결과
+        </h2>
+
+
+        <div
+            id="resultSummary"
+            class="result-summary">
+
+        </div>
+
+
+        <div
+            id="matchResults"
+            class="match-results-grid">
+
+        </div>
+
+    </section>
+
+
+</main>
+
+
+
+<script>
+
+
+// ==========================================
+// 서버 주소
+// ==========================================
+
+const API_URL =
+    "http://127.0.0.1:8000";
+
+
+
+// ==========================================
+// 페이지가 열리면 분실물 목록 불러오기
+// ==========================================
+
+async function loadLostItems() {
+
+    try {
+
+        const response =
+            await fetch(
+                `${API_URL}/lost-items`
+            );
+
+
+        if (!response.ok) {
+
+            throw new Error(
+                "분실물 목록을 불러오지 못했습니다."
+            );
+
+        }
+
+
+        const items =
+            await response.json();
+
+
+        const select =
+            document.getElementById(
+                "lostSelect"
+            );
+
+
+        // 기존 목록 초기화
+
+        select.innerHTML = `
+
+            <option value="">
+                분실물을 선택해주세요
+            </option>
+
+        `;
+
+
+        // 분실물 목록 추가
+
+        items.forEach(item => {
+
+            const option =
+                document.createElement(
+                    "option"
+                );
+
+
+            option.value =
+                item.id;
+
+
+            option.textContent =
+                `${item.item_name} - ${item.location} (${item.lost_date})`;
+
+
+            select.appendChild(
+                option
+            );
+
+        });
+
+
+    }
+    catch (error) {
+
+        console.error(
+            "분실물 목록 오류:",
+            error
+        );
+
+
+        alert(
+            "분실물 목록을 불러오지 못했습니다."
+        );
+
+    }
+
+}
+
+
+
+// ==========================================
+// AI 매칭 시작
+// ==========================================
+
+async function startMatching() {
+
+
+    const select =
+        document.getElementById(
+            "lostSelect"
+        );
+
+
+    const lostId =
+        select.value;
+
+
+    // 분실물 선택 여부 확인
+
+    if (!lostId) {
+
+        alert(
+            "먼저 분실물을 선택해주세요."
+        );
+
+        return;
+
+    }
+
+
+    const button =
+        document.getElementById(
+            "matchButton"
+        );
+
+
+    const lostInfo =
+        document.getElementById(
+            "lostInfo"
+        );
+
+
+    const resultSection =
+        document.getElementById(
+            "resultSection"
+        );
+
+
+    const resultSummary =
+        document.getElementById(
+            "resultSummary"
+        );
+
+
+    const resultContainer =
+        document.getElementById(
+            "matchResults"
+        );
+
+
+    // 버튼 비활성화
+
+    button.disabled = true;
+
+
+    button.textContent =
+        "AI 분석 중...";
+
+
+    // 결과 화면 표시
+
+    resultSection.style.display =
+        "block";
+
+
+    resultSummary.innerHTML = `
+
+        <div class="loading-box">
+
+            <h3>
+                AI가 이미지를 분석하고 있습니다.
+            </h3>
+
+            <p>
+                등록된 습득물 사진과 비교하는 중입니다.
+            </p>
+
+        </div>
+
+    `;
+
+
+    resultContainer.innerHTML = "";
+
+
+
+    try {
+
+
+        // ==================================
+        // AI 매칭 API 호출
+        // ==================================
+
+        const response =
+            await fetch(
+                `${API_URL}/match/${lostId}`
+            );
+
+
+        const data =
+            await response.json();
+
+
+        if (!response.ok) {
+
+            throw new Error(
+                data.detail ||
+                "AI 매칭에 실패했습니다."
+            );
+
+        }
+
+
+
+        // ==================================
+        // 선택한 분실물 표시
+        // ==================================
+
+        showLostItem(
+            data.lost_item
+        );
+
+
+
+        // ==================================
+        // AI 결과 표시
+        // ==================================
+
+        displayResults(
+            data.matches
+        );
+
+
+    }
+    catch (error) {
+
+
+        console.error(
+            "AI 매칭 오류:",
+            error
+        );
+
+
+        resultSummary.innerHTML = `
+
+            <div class="no-result">
+
+                <h3>
+                    AI 매칭 오류
+                </h3>
+
+                <p>
+                    ${error.message}
+                </p>
+
+            </div>
+
+        `;
+
+
+        resultContainer.innerHTML = "";
+
+
+        alert(
+            error.message
+        );
+
+    }
+
+
+    // 버튼 다시 활성화
+
+    button.disabled = false;
+
+
+    button.textContent =
+        "AI 매칭 시작";
+
+}
+
+
+
+// ==========================================
+// 선택한 분실물 표시
+// ==========================================
+
+function showLostItem(item) {
+
+
+    const section =
+        document.getElementById(
+            "lostInfo"
+        );
+
+
+    const container =
+        document.getElementById(
+            "lostItemInfo"
+        );
+
+
+    const imageFile =
+        getFileName(
+            item.image_path
+        );
+
+
+    container.innerHTML = `
+
+        <div class="selected-lost-card">
+
+
+            <div class="selected-lost-image">
+
+                <img
+                    src="${API_URL}/uploads/${imageFile}"
+                    alt="${escapeHtml(item.item_name)}"
+                >
+
+            </div>
+
+
+            <div class="selected-lost-info">
+
+                <h2>
+                    ${escapeHtml(item.item_name)}
+                </h2>
+
+
+                <p>
+                    <strong>
+                        분실 장소:
+                    </strong>
+
+                    ${escapeHtml(item.location)}
+                </p>
+
+
+                <p>
+                    <strong>
+                        분실 날짜:
+                    </strong>
+
+                    ${escapeHtml(item.lost_date)}
+                </p>
+
+
+                <p>
+                    <strong>
+                        설명:
+                    </strong>
+
+                    ${escapeHtml(
+                        item.description ||
+                        "설명 없음"
+                    )}
+                </p>
+
+            </div>
+
+        </div>
+
+    `;
+
+
+    section.style.display =
+        "block";
+
+}
+
+
+
+// ==========================================
+// AI 매칭 결과 표시
+// ==========================================
+
+function displayResults(matches) {
+
+
+    const container =
+        document.getElementById(
+            "matchResults"
+        );
+
+
+    const summary =
+        document.getElementById(
+            "resultSummary"
+        );
+
+
+    container.innerHTML = "";
+
+
+    // 결과가 없는 경우
+
+    if (
+        !matches ||
+        matches.length === 0
+    ) {
+
+        summary.innerHTML = `
+
+            <div class="no-result">
+
+                <h3>
+                    매칭 결과가 없습니다.
+                </h3>
+
+                <p>
+                    비교할 습득물이 등록되어 있지 않습니다.
+                </p>
+
+            </div>
+
+        `;
+
+        return;
+
+    }
+
+
+
+    // 결과 요약
+
+    const topScore =
+        Number(
+            matches[0].similarity
+        );
+
+
+    summary.innerHTML = `
+
+        <strong>
+            총 ${matches.length}개의 습득물을 AI가 분석했습니다.
+        </strong>
+
+        <br>
+
+        가장 높은 이미지 유사도는
+        <strong>
+            ${topScore}%
+        </strong>
+        입니다.
+
+    `;
+
+
+
+    // 결과 카드 생성
+
+    matches.forEach(
+        (item, index) => {
+
+
+            const similarity =
+                Number(
+                    item.similarity
+                );
+
+
+            // ==================================
+            // 등급 결정
+            // ==================================
+
+            let grade;
+            let gradeText;
+            let gradeColor;
+
+
+            if (similarity >= 85) {
+
+                grade =
+                    "매우 높음";
+
+                gradeText =
+                    "강력한 매칭 후보입니다.";
+
+                gradeColor =
+                    "#16a34a";
+
+            }
+            else if (similarity >= 70) {
+
+                grade =
+                    "높음";
+
+                gradeText =
+                    "매칭 가능성이 높습니다.";
+
+                gradeColor =
+                    "#2563eb";
+
+            }
+            else if (similarity >= 50) {
+
+                grade =
+                    "보통";
+
+                gradeText =
+                    "추가 확인이 필요합니다.";
+
+                gradeColor =
+                    "#f59e0b";
+
+            }
+            else {
+
+                grade =
+                    "낮음";
+
+                gradeText =
+                    "유사도가 낮습니다.";
+
+                gradeColor =
+                    "#dc2626";
+
+            }
+
+
+
+            // ==================================
+            // 순위
+            // ==================================
+
+            let rank;
+
+
+            if (index === 0) {
+
+                rank =
+                    "🥇 1위";
+
+            }
+            else if (index === 1) {
+
+                rank =
+                    "🥈 2위";
+
+            }
+            else if (index === 2) {
+
+                rank =
+                    "🥉 3위";
+
+            }
+            else {
+
+                rank =
+                    `${index + 1}위`;
+
+            }
+
+
+
+            // ==================================
+            // 이미지 파일명
+            // ==================================
+
+            const imageFile =
+                getFileName(
+                    item.image_path
+                );
+
+
+
+            // ==================================
+            // 카드 생성
+            // ==================================
+
+            const card =
+                document.createElement(
+                    "div"
+                );
+
+
+            card.className =
+                "match-card";
+
+
+
+            card.innerHTML = `
+
+                <div class="match-card-image">
+
+                    <img
+                        src="${API_URL}/uploads/${imageFile}"
+                        alt="${escapeHtml(item.item_name)}"
+                    >
+
+                </div>
+
+
+                <div class="match-card-info">
+
+
+                    <div class="match-card-top">
+
+
+                        <span class="match-rank">
+
+                            ${rank}
+
+                        </span>
+
+
+                        <span
+                            class="match-grade"
+                            style="
+                                background-color:${gradeColor};
+                            "
+                        >
+
+                            ${grade}
+
+                        </span>
+
+
+                    </div>
+
+
+
+                    <h3>
+
+                        ${escapeHtml(
+                            item.item_name
+                        )}
+
+                    </h3>
+
+
+
+                    <p>
+
+                        <strong>
+                            습득 장소:
+                        </strong>
+
+                        ${escapeHtml(
+                            item.location
+                        )}
+
+                    </p>
+
+
+
+                    <p>
+
+                        <strong>
+                            습득 날짜:
+                        </strong>
+
+                        ${escapeHtml(
+                            item.found_date
+                        )}
+
+                    </p>
+
+
+
+                    <p>
+
+                        <strong>
+                            설명:
+                        </strong>
+
+                        ${escapeHtml(
+                            item.description ||
+                            "설명 없음"
+                        )}
+
+                    </p>
+
+
+
+                    <!-- AI 유사도 -->
+
+                    <div class="similarity-box">
+
+
+                        <div class="similarity-header">
+
+
+                            <span class="similarity-title">
+
+                                AI 이미지 유사도
+
+                            </span>
+
+
+                            <span
+                                class="similarity-number"
+                                style="
+                                    color:${gradeColor};
+                                "
+                            >
+
+                                ${similarity}%
+
+                            </span>
+
+
+                        </div>
+
+
+
+                        <!-- 진행률 -->
+
+                        <div class="similarity-bar">
+
+
+                            <div
+                                class="similarity-progress"
+                                style="
+                                    width:${Math.min(
+                                        Math.max(
+                                            similarity,
+                                            0
+                                        ),
+                                        100
+                                    )}%;
+                                    background-color:${gradeColor};
+                                "
+                            >
+
+                            </div>
+
+
+                        </div>
+
+
+
+                        <div
+                            class="similarity-description"
+                            style="
+                                color:${gradeColor};
+                            "
+                        >
+
+                            ${gradeText}
+
+                        </div>
+
+
+                    </div>
+
+
+                </div>
+
+            `;
+
+
+            container.appendChild(
+                card
+            );
+
+        }
+    );
+
+}
+
+
+
+// ==========================================
+// 이미지 경로에서 파일명 추출
+// ==========================================
+
+function getFileName(path) {
+
+
+    if (!path) {
+
+        return "";
+
+    }
+
+
+    return path
+        .replaceAll("\\", "/")
+        .split("/")
+        .pop();
+
+}
+
+
+
+// ==========================================
+// HTML 특수문자 처리
+// ==========================================
+
+function escapeHtml(value) {
+
+
+    if (value === null ||
+        value === undefined) {
+
+        return "";
+
+    }
+
+
+    return String(value)
+        .replaceAll("&", "&amp;")
+        .replaceAll("<", "&lt;")
+        .replaceAll(">", "&gt;")
+        .replaceAll('"', "&quot;")
+        .replaceAll("'", "&#039;");
+
+}
+
+
+
+// ==========================================
+// 페이지 시작
+// ==========================================
+
+loadLostItems();
+
+
+</script>
+
+
+</body>
+
+</html>

@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="ko">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>분실물 등록</title>
+
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+
+    <!-- 상단 메뉴 -->
+    <header>
+
+        <div class="logo">
+            AI 분실물 매칭
+        </div>
+
+        <nav>
+            <a href="index.html">홈</a>
+            <a href="lost.html">분실물 등록</a>
+            <a href="#">습득물 등록</a>
+            <a href="#">로그인</a>
+        </nav>
+
+    </header>
+
+
+    <!-- 분실물 등록 -->
+    <main>
+
+        <section class="form-section">
+
+            <h1>분실물 등록</h1>
+
+            <p class="form-description">
+                잃어버린 물건의 정보를 입력해주세요.
+                등록된 정보는 AI 자동 매칭에 사용됩니다.
+            </p>
+
+
+            <form id="lostForm">
+
+                <!-- 사진 -->
+                <div class="form-group">
+
+                    <label for="image">
+                        물품 사진
+                    </label>
+
+                    <input
+                        type="file"
+                        id="image"
+                        accept="image/*"
+                    >
+
+                    <p class="help">
+                        분실한 물품의 사진을 선택해주세요.
+                    </p>
+
+                </div>
+
+
+                <!-- 물품명 -->
+                <div class="form-group">
+
+                    <label for="itemName">
+                        물품명
+                    </label>
+
+                    <input
+                        type="text"
+                        id="itemName"
+                        placeholder="예: 검은색 지갑"
+                        required
+                    >
+
+                </div>
+
+
+                <!-- 분실 장소 -->
+                <div class="form-group">
+
+                    <label for="location">
+                        분실 장소
+                    </label>
+
+                    <input
+                        type="text"
+                        id="location"
+                        placeholder="예: 동서대학교 센텀캠퍼스"
+                        required
+                    >
+
+                </div>
+
+
+                <!-- 분실 날짜 -->
+                <div class="form-group">
+
+                    <label for="date">
+                        분실 날짜
+                    </label>
+
+                    <input
+                        type="date"
+                        id="date"
+                        required
+                    >
+
+                </div>
+
+
+                <!-- 상세 설명 -->
+                <div class="form-group">
+
+                    <label for="description">
+                        상세 설명
+                    </label>
+
+                    <textarea
+                        id="description"
+                        rows="6"
+                        placeholder="물품의 색상, 특징, 내용물 등을 자세하게 입력해주세요."
+                    ></textarea>
+
+                </div>
+
+
+                <!-- 등록 버튼 -->
+                <button
+                    type="submit"
+                    class="submit-button"
+                >
+                    분실물 등록하기
+                </button>
+
+            </form>
+
+        </section>
+
+    </main>
+
+
+    <footer>
+
+        <p>
+            AI 기반 이미지 인식을 활용한 분실물 자동 매칭 시스템
+        </p>
+
+        <p>
+            졸업작품
+        </p>
+
+    </footer>
+
+
+    <script src="script.js"></script>
+
+</body>
+
+</html>

@@ -1,0 +1,324 @@
+<!DOCTYPE html>
+<html lang="ko">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>습득물 등록 - AI 분실물 매칭</title>
+
+    <link rel="stylesheet" href="style.css">
+
+</head>
+
+<body>
+
+    <!-- 상단 메뉴 -->
+
+    <header>
+
+        <div class="logo">
+            AI 분실물 매칭
+        </div>
+
+        <nav>
+
+            <a href="index.html">
+                홈
+            </a>
+
+            <a href="lost-list.html">
+                분실물 찾기
+            </a>
+
+            <a href="lost.html">
+                분실물 등록
+            </a>
+
+            <a href="found.html">
+                습득물 등록
+            </a>
+
+            <a href="#">
+                로그인
+            </a>
+
+        </nav>
+
+    </header>
+
+
+    <!-- 습득물 등록 -->
+
+    <main>
+
+        <section class="page-title">
+
+            <h1>
+                습득물 등록
+            </h1>
+
+            <p>
+                습득한 물건의 정보를 등록해주세요.
+            </p>
+
+        </section>
+
+
+        <section>
+
+            <form id="foundForm">
+
+                <!-- 사진 -->
+
+                <div>
+
+                    <label for="image">
+                        습득물 사진
+                    </label>
+
+                    <input
+                        type="file"
+                        id="image"
+                        accept="image/*"
+                        required
+                    >
+
+                </div>
+
+
+                <!-- 물건 이름 -->
+
+                <div>
+
+                    <label for="itemName">
+                        물건 이름
+                    </label>
+
+                    <input
+                        type="text"
+                        id="itemName"
+                        placeholder="예: 에어팟"
+                        required
+                    >
+
+                </div>
+
+
+                <!-- 습득 장소 -->
+
+                <div>
+
+                    <label for="location">
+                        습득 장소
+                    </label>
+
+                    <input
+                        type="text"
+                        id="location"
+                        placeholder="예: 동서대학교 도서관"
+                        required
+                    >
+
+                </div>
+
+
+                <!-- 습득 날짜 -->
+
+                <div>
+
+                    <label for="date">
+                        습득 날짜
+                    </label>
+
+                    <input
+                        type="date"
+                        id="date"
+                        required
+                    >
+
+                </div>
+
+
+                <!-- 설명 -->
+
+                <div>
+
+                    <label for="description">
+                        상세 설명
+                    </label>
+
+                    <textarea
+                        id="description"
+                        placeholder="색상, 특징 등을 입력해주세요."
+                    ></textarea>
+
+                </div>
+
+
+                <!-- 등록 버튼 -->
+
+                <button type="submit">
+                    습득물 등록하기
+                </button>
+
+            </form>
+
+        </section>
+
+    </main>
+
+
+    <script>
+
+        const foundForm =
+            document.getElementById("foundForm");
+
+
+        foundForm.addEventListener(
+            "submit",
+            async function(event) {
+
+                event.preventDefault();
+
+
+                // 입력값 가져오기
+
+                const itemName =
+                    document.getElementById(
+                        "itemName"
+                    ).value;
+
+                const location =
+                    document.getElementById(
+                        "location"
+                    ).value;
+
+                const date =
+                    document.getElementById(
+                        "date"
+                    ).value;
+
+                const description =
+                    document.getElementById(
+                        "description"
+                    ).value;
+
+
+                // 사진 가져오기
+
+                const imageInput =
+                    document.getElementById(
+                        "image"
+                    );
+
+                const image =
+                    imageInput.files[0];
+
+
+                if (!image) {
+
+                    alert(
+                        "습득물 사진을 선택해주세요."
+                    );
+
+                    return;
+
+                }
+
+
+                // FormData 생성
+
+                const formData =
+                    new FormData();
+
+
+                formData.append(
+                    "item_name",
+                    itemName
+                );
+
+                formData.append(
+                    "location",
+                    location
+                );
+
+                formData.append(
+                    "found_date",
+                    date
+                );
+
+                formData.append(
+                    "description",
+                    description
+                );
+
+                formData.append(
+                    "image",
+                    image
+                );
+
+
+                // FastAPI 전송
+
+                try {
+
+                    const response =
+                        await fetch(
+                            "http://127.0.0.1:8000/found-items",
+                            {
+                                method: "POST",
+                                body: formData
+                            }
+                        );
+
+
+                    const result =
+                        await response.json();
+
+
+                    if (response.ok) {
+
+                        alert(
+                            "습득물이 정상적으로 등록되었습니다!\n\n" +
+                            "등록번호: " +
+                            result.id
+                        );
+
+
+                        foundForm.reset();
+
+                    }
+
+                    else {
+
+                        alert(
+                            "등록에 실패했습니다.\n\n" +
+                            result.detail
+                        );
+
+                    }
+
+                }
+
+                catch (error) {
+
+                    console.error(error);
+
+                    alert(
+                        "서버에 연결할 수 없습니다.\n\n" +
+                        "FastAPI 서버가 실행 중인지 확인해주세요."
+                    );
+
+                }
+
+            }
+        );
+
+    </script>
+
+</body>
+
+</html>
