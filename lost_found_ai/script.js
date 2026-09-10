@@ -177,22 +177,9 @@ function goLost() {
 // ==========================================
 
 function goFound() {
-
-    alert(
-        "습득물 등록 페이지를 준비 중입니다."
-    );
-
+    window.location.href = "found.html";
 }
 
-
-// ==========================================
-// AI 매칭
-// ==========================================
-
 function startMatching() {
-
-    alert(
-        "AI 자동 매칭 기능을 준비 중입니다."
-    );
-
+    window.location.href = "match.html";
 }
