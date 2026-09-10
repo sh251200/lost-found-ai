@@ -5,6 +5,8 @@ from fastapi.staticfiles import StaticFiles
 import mysql.connector
 import os
 import shutil
+import cloudinary
+import cloudinary.uploader
 
 import torch
 from transformers import CLIPProcessor, CLIPModel
@@ -12,6 +14,12 @@ from PIL import Image
 
 
 app = FastAPI()
+
+cloudinary.config(
+    cloud_name=os.getenv("CLOUDINARY_CLOUD_NAME"),
+    api_key=os.getenv("CLOUDINARY_API_KEY"),
+    api_secret=os.getenv("CLOUDINARY_API_SECRET")
+)
 
 
 # ==========================================
@@ -133,19 +141,12 @@ async def create_lost_item(
 
 ):
 
-    file_name = image.filename
-
-    file_path = os.path.join(
-        UPLOAD_DIR,
-        file_name
+    upload_result = cloudinary.uploader.upload(
+        image.file,
+        folder="lost_found_ai/lost"
     )
 
-    with open(file_path, "wb") as buffer:
-
-        shutil.copyfileobj(
-            image.file,
-            buffer
-        )
+    file_path = upload_result["secure_url"]
 
 
     db = get_db()
