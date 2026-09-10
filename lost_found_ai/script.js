@@ -84,8 +84,8 @@ if (lostForm) {
 
         try {
 
-            const response = await fetch(
-                "http://127.0.0.1:8000/lost-items",
+           const response = await fetch(
+            "https://lost-found-ai-0z75.onrender.com/lost-items",
                 {
                     method: "POST",
                     body: formData
@@ -148,9 +148,10 @@ if (lostForm) {
 
             console.error(error);
 
-            alert(
+           alert(
                 "서버에 연결할 수 없습니다.\n\n" +
-                "FastAPI 서버가 실행 중인지 확인해주세요."
+                "잠시 후 다시 시도해주세요."
+);
             );
 
         }
