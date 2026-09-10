@@ -2,8 +2,8 @@ fastapi
 uvicorn
 python-multipart
 mysql-connector-python
-torch
-transformers
-Pillow
 cloudinary
-replicate
+onnxruntime
+numpy
+Pillow
+requests
