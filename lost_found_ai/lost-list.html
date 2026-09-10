@@ -5,9 +5,51 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-    <title>분실물 목록</title>
+    <title>분실물 찾기</title>
 
     <link rel="stylesheet" href="style.css">
+
+    <style>
+        .list-title {
+            max-width: 1000px;
+            margin: 35px auto 15px auto;
+            padding: 0 20px;
+        }
+
+        .list-title h2 {
+            margin-bottom: 5px;
+        }
+
+        .list-title p {
+            color: #666;
+            margin-top: 0;
+        }
+
+        .action-buttons {
+            display: flex;
+            gap: 10px;
+            margin-top: 15px;
+        }
+
+        .action-buttons button {
+            flex: 1;
+        }
+
+        .match-btn {
+            background-color: #2563eb;
+        }
+
+        .delete-btn {
+            background-color: #dc2626;
+        }
+
+        .section-divider {
+            max-width: 1000px;
+            margin: 50px auto;
+            border: 0;
+            border-top: 1px solid #ddd;
+        }
+    </style>
 </head>
 
 <body>
@@ -29,23 +71,71 @@
 
 </header>
 
+
 <main>
 
     <section class="page-title">
 
-        <h1>등록된 분실물</h1>
+        <h1>분실물 찾기</h1>
 
         <p>
-            등록된 분실물 정보를 확인할 수 있습니다.
+            등록된 분실물과 습득물을 확인할 수 있습니다.
         </p>
 
     </section>
+
+
+    <!-- =========================
+         분실물
+    ========================== -->
+
+    <section class="list-title">
+
+        <h2>🔎 등록된 분실물</h2>
+
+        <p>
+            잃어버린 물건 목록입니다.
+        </p>
+
+    </section>
+
 
     <section
         id="lostItems"
         class="lost-items">
 
-        <p>분실물 정보를 불러오는 중입니다...</p>
+        <p>
+            분실물 정보를 불러오는 중입니다...
+        </p>
+
+    </section>
+
+
+    <hr class="section-divider">
+
+
+    <!-- =========================
+         습득물
+    ========================== -->
+
+    <section class="list-title">
+
+        <h2>📦 등록된 습득물</h2>
+
+        <p>
+            발견되어 등록된 물건 목록입니다.
+        </p>
+
+    </section>
+
+
+    <section
+        id="foundItems"
+        class="lost-items">
+
+        <p>
+            습득물 정보를 불러오는 중입니다...
+        </p>
 
     </section>
 
@@ -58,10 +148,47 @@ const API_URL =
     "https://lost-found-ai-0z75.onrender.com";
 
 
+/* ==========================================
+   이미지 URL 처리
+========================================== */
+
+function getImageUrl(path) {
+
+    if (!path) {
+        return "";
+    }
+
+    if (
+        path.startsWith("http://") ||
+        path.startsWith("https://")
+    ) {
+        return path;
+    }
+
+    const fileName =
+        path
+            .replaceAll("\\", "/")
+            .split("/")
+            .pop();
+
+    return (
+        API_URL +
+        "/uploads/" +
+        encodeURIComponent(fileName)
+    );
+}
+
+
+/* ==========================================
+   분실물 불러오기
+========================================== */
+
 async function loadLostItems() {
 
     const container =
-        document.getElementById("lostItems");
+        document.getElementById(
+            "lostItems"
+        );
 
     try {
 
@@ -71,7 +198,6 @@ async function loadLostItems() {
             );
 
         if (!response.ok) {
-
             throw new Error(
                 "서버 응답 오류"
             );
@@ -96,7 +222,6 @@ async function loadLostItems() {
                     </p>
 
                 </div>
-
             `;
 
             return;
@@ -108,28 +233,16 @@ async function loadLostItems() {
 
         items.forEach(function(item) {
 
-            let imageUrl = "";
+            const imageUrl =
+                getImageUrl(
+                    item.image_path
+                );
 
-
-            if (item.image_path) {
-
-            if (
-                item.image_path.startsWith("http://") ||
-                item.image_path.startsWith("https://")
-            ) {
-                imageUrl = item.image_path;
-            } else {
-                const fileName = item.image_path
-                    .replaceAll("\\", "/")
-                    .split("/")
-                    .pop();
-
-                imageUrl = API_URL + "/uploads/" + encodeURIComponent(fileName);
-            }
-        }
 
             const card =
-                document.createElement("div");
+                document.createElement(
+                    "div"
+                );
 
 
             card.className =
@@ -142,19 +255,19 @@ async function loadLostItems() {
 
                     ${
                         imageUrl
-
                         ?
-
-                        `<img
+                        `
+                        <img
                             src="${imageUrl}"
                             alt="${item.item_name}"
-                        >`
-
+                        >
+                        `
                         :
-
-                        `<div>
+                        `
+                        <div>
                             사진 없음
-                        </div>`
+                        </div>
+                        `
                     }
 
                 </div>
@@ -166,20 +279,24 @@ async function loadLostItems() {
                         ${item.item_name}
                     </h2>
 
+
                     <p>
                         📍 장소:
                         ${item.location}
                     </p>
+
 
                     <p>
                         📅 분실 날짜:
                         ${item.lost_date}
                     </p>
 
+
                     <p>
                         📝 설명:
                         ${item.description || "없음"}
                     </p>
+
 
                     <div class="lost-id">
 
@@ -188,22 +305,35 @@ async function loadLostItems() {
 
                     </div>
 
-                    <button
-                        onclick="deleteLostItem(${item.id})"
-                        style="
-                            margin-top: 15px;
-                            background-color: #dc2626;
-                        "
-                    >
-                        삭제
-                    </button>
+
+                    <div class="action-buttons">
+
+                        <button
+                            class="match-btn"
+                            onclick="goToMatch(${item.id})">
+
+                            AI 매칭
+
+                        </button>
+
+
+                        <button
+                            class="delete-btn"
+                            onclick="deleteLostItem(${item.id})">
+
+                            삭제
+
+                        </button>
+
+                    </div>
 
                 </div>
-
             `;
 
 
-            container.appendChild(card);
+            container.appendChild(
+                card
+            );
 
         });
 
@@ -213,12 +343,13 @@ async function loadLostItems() {
 
         console.error(error);
 
+
         container.innerHTML = `
 
             <div class="empty-message">
 
                 <h2>
-                    데이터를 불러오지 못했습니다.
+                    분실물 데이터를 불러오지 못했습니다.
                 </h2>
 
                 <p>
@@ -226,11 +357,203 @@ async function loadLostItems() {
                 </p>
 
             </div>
-
         `;
     }
 }
 
+
+/* ==========================================
+   습득물 불러오기
+========================================== */
+
+async function loadFoundItems() {
+
+    const container =
+        document.getElementById(
+            "foundItems"
+        );
+
+    try {
+
+        const response =
+            await fetch(
+                API_URL + "/found-items"
+            );
+
+
+        if (!response.ok) {
+
+            throw new Error(
+                "서버 응답 오류"
+            );
+        }
+
+
+        const items =
+            await response.json();
+
+
+        if (items.length === 0) {
+
+            container.innerHTML = `
+
+                <div class="empty-message">
+
+                    <h2>
+                        등록된 습득물이 없습니다.
+                    </h2>
+
+                    <p>
+                        습득된 물건이 등록되면
+                        이곳에 표시됩니다.
+                    </p>
+
+                </div>
+            `;
+
+            return;
+        }
+
+
+        container.innerHTML = "";
+
+
+        items.forEach(function(item) {
+
+            const imageUrl =
+                getImageUrl(
+                    item.image_path
+                );
+
+
+            const card =
+                document.createElement(
+                    "div"
+                );
+
+
+            card.className =
+                "lost-card";
+
+
+            card.innerHTML = `
+
+                <div class="lost-image">
+
+                    ${
+                        imageUrl
+                        ?
+                        `
+                        <img
+                            src="${imageUrl}"
+                            alt="${item.item_name}"
+                        >
+                        `
+                        :
+                        `
+                        <div>
+                            사진 없음
+                        </div>
+                        `
+                    }
+
+                </div>
+
+
+                <div class="lost-info">
+
+                    <h2>
+                        ${item.item_name}
+                    </h2>
+
+
+                    <p>
+                        📍 습득 장소:
+                        ${item.location}
+                    </p>
+
+
+                    <p>
+                        📅 습득 날짜:
+                        ${item.found_date}
+                    </p>
+
+
+                    <p>
+                        📝 설명:
+                        ${item.description || "없음"}
+                    </p>
+
+
+                    <div class="lost-id">
+
+                        등록번호:
+                        ${item.id}
+
+                    </div>
+
+
+                    <div class="action-buttons">
+
+                        <button
+                            class="delete-btn"
+                            onclick="deleteFoundItem(${item.id})">
+
+                            삭제
+
+                        </button>
+
+                    </div>
+
+                </div>
+            `;
+
+
+            container.appendChild(
+                card
+            );
+
+        });
+
+    }
+
+    catch (error) {
+
+        console.error(error);
+
+
+        container.innerHTML = `
+
+            <div class="empty-message">
+
+                <h2>
+                    습득물 데이터를 불러오지 못했습니다.
+                </h2>
+
+                <p>
+                    잠시 후 다시 시도해주세요.
+                </p>
+
+            </div>
+        `;
+    }
+}
+
+
+/* ==========================================
+   AI 매칭 페이지 이동
+========================================== */
+
+function goToMatch(id) {
+
+    window.location.href =
+        "match.html?lost_id=" + id;
+}
+
+
+/* ==========================================
+   분실물 삭제
+========================================== */
 
 async function deleteLostItem(id) {
 
@@ -241,7 +564,6 @@ async function deleteLostItem(id) {
 
 
     if (!confirmDelete) {
-
         return;
     }
 
@@ -297,10 +619,82 @@ async function deleteLostItem(id) {
 }
 
 
+/* ==========================================
+   습득물 삭제
+========================================== */
+
+async function deleteFoundItem(id) {
+
+    const confirmDelete =
+        confirm(
+            "정말 이 습득물을 삭제하시겠습니까?"
+        );
+
+
+    if (!confirmDelete) {
+        return;
+    }
+
+
+    try {
+
+        const response =
+            await fetch(
+
+                API_URL +
+                "/found-items/" +
+                id,
+
+                {
+                    method: "DELETE"
+                }
+
+            );
+
+
+        const result =
+            await response.json();
+
+
+        if (response.ok) {
+
+            alert(
+                "습득물이 삭제되었습니다."
+            );
+
+            loadFoundItems();
+
+        }
+
+        else {
+
+            alert(
+                result.detail ||
+                "삭제에 실패했습니다."
+            );
+        }
+
+    }
+
+    catch (error) {
+
+        console.error(error);
+
+        alert(
+            "서버와 연결할 수 없습니다."
+        );
+    }
+}
+
+
+/* ==========================================
+   페이지 시작
+========================================== */
+
 loadLostItems();
+loadFoundItems();
 
 </script>
 
 </body>
-
 </html>
