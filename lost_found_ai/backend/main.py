@@ -62,21 +62,13 @@ def get_db():
 # AI 모델 설정
 # ==========================================
 
-print("AI 모델을 불러오는 중입니다...")
+# Render 무료 서버 테스트를 위해
+# 서버 시작 시 CLIP 모델을 자동 로딩하지 않음
 
+model = None
+processor = None
 
-model = CLIPModel.from_pretrained(
-    "openai/clip-vit-base-patch32"
-)
-
-
-processor = CLIPProcessor.from_pretrained(
-    "openai/clip-vit-base-patch32"
-)
-
-
-print("AI 모델 로딩 완료!")
-
+print("서버 시작 완료 - AI 모델 로딩 보류")
 
 # ==========================================
 # 이미지 특징 추출 함수
