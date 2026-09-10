@@ -71,7 +71,7 @@ async function loadLostItems() {
 
         const response =
             await fetch(
-                "https://lost-found-ai-0z75.onrender.com/..."
+                "https://lost-found-ai-0z75.onrender.com/lost-items"
             );
 
 
@@ -108,7 +108,7 @@ async function loadLostItems() {
 
             const imageUrl =
                 item.image_path
-                    ? "https://lost-found-ai-0z75.onrender.com/..."
+                    ? "https://lost-found-ai-0z75.onrender.com/uploads/"
                       + item.image_path.split("\\").pop()
                     : "";
 
@@ -247,7 +247,7 @@ async function deleteLostItem(id) {
         const response =
             await fetch(
 
-                `https://lost-found-ai-0z75.onrender.com/...`,
+                `https://lost-found-ai-0z75.onrender.com/lost-items/${id}`,
 
                 {
                     method: "DELETE"
