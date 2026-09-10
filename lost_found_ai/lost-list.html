@@ -71,7 +71,7 @@ async function loadLostItems() {
 
         const response =
             await fetch(
-                "http://127.0.0.1:8000/lost-items"
+                "https://lost-found-ai-0z75.onrender.com/..."
             );
 
 
@@ -108,7 +108,7 @@ async function loadLostItems() {
 
             const imageUrl =
                 item.image_path
-                    ? "http://127.0.0.1:8000/uploads/"
+                    ? "https://lost-found-ai-0z75.onrender.com/..."
                       + item.image_path.split("\\").pop()
                     : "";
 
@@ -214,7 +214,7 @@ async function loadLostItems() {
                 </h2>
 
                 <p>
-                    서버가 실행 중인지 확인해주세요.
+                    잠시 후 다시 시도해주세요.
                 </p>
 
             </div>
@@ -247,7 +247,7 @@ async function deleteLostItem(id) {
         const response =
             await fetch(
 
-                `http://127.0.0.1:8000/lost-items/${id}`,
+                `https://lost-found-ai-0z75.onrender.com/...`,
 
                 {
                     method: "DELETE"
