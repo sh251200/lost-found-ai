@@ -10,10 +10,6 @@
     <link rel="stylesheet" href="style.css">
 
     <style>
-        /* ==============================
-           AI 매칭 전용 스타일
-        ============================== */
-
         .match-section {
             max-width: 900px;
             margin: 0 auto 30px auto;
@@ -213,7 +209,6 @@
         }
 
         @media (max-width: 700px) {
-
             .selected-lost-card {
                 flex-direction: column;
                 align-items: stretch;
@@ -233,173 +228,121 @@
             }
         }
     </style>
-
 </head>
-
 
 <body>
 
-
 <header>
-
     <div class="logo">
         AI 분실물 매칭
     </div>
 
-
     <nav>
-
-        <a href="index.html">
-            홈
-        </a>
-
-        <a href="lost-list.html">
-            분실물 찾기
-        </a>
-
-        <a href="lost.html">
-            분실물 등록
-        </a>
-
-        <a href="found.html">
-            습득물 등록
-        </a>
-
-        <a href="match.html">
-            AI 매칭
-        </a>
-
-        <a href="#">
-            로그인
-        </a>
-
+        <a href="index.html">홈</a>
+        <a href="lost-list.html">분실물 찾기</a>
+        <a href="lost.html">분실물 등록</a>
+        <a href="found.html">습득물 등록</a>
+        <a href="match.html">AI 매칭</a>
+        <a href="#">로그인</a>
     </nav>
-
 </header>
-
 
 <main>
 
-
-    <!-- ==============================
-         페이지 제목
-    ============================== -->
-
     <div class="page-title">
-
-        <h1>
-            AI 분실물 매칭
-        </h1>
-
+        <h1>AI 분실물 매칭</h1>
         <p>
             등록된 분실물과 습득물의 이미지를 AI가 비교합니다.
         </p>
-
     </div>
 
-
-
-    <!-- ==============================
-         분실물 선택
-    ============================== -->
-
     <section class="match-section">
-
-        <h2>
-            1. 분실물 선택
-        </h2>
-
+        <h2>1. 분실물 선택</h2>
 
         <select id="lostSelect">
-
             <option value="">
                 분실물을 선택해주세요
             </option>
-
         </select>
-
 
         <button
             id="matchButton"
             onclick="startMatching()">
-
             AI 매칭 시작
-
         </button>
-
     </section>
-
-
-
-    <!-- ==============================
-         선택한 분실물
-    ============================== -->
 
     <section
         id="lostInfo"
         class="match-section"
         style="display: none;">
 
-        <h2>
-            2. 선택한 분실물
-        </h2>
-
+        <h2>2. 선택한 분실물</h2>
 
         <div id="lostItemInfo"></div>
-
     </section>
-
-
-
-    <!-- ==============================
-         AI 결과
-    ============================== -->
 
     <section
         id="resultSection"
         class="match-section"
         style="display: none;">
 
-        <h2>
-            3. AI 매칭 결과
-        </h2>
-
+        <h2>3. AI 매칭 결과</h2>
 
         <div
             id="resultSummary"
             class="result-summary">
-
         </div>
-
 
         <div
             id="matchResults"
             class="match-results-grid">
-
         </div>
-
     </section>
-
 
 </main>
 
-
-
 <script>
-
-
-// ==========================================
-// 서버 주소
-// ==========================================
 
 const API_URL =
     "https://lost-found-ai-0z75.onrender.com";
 
 
+/* ==========================================
+   이미지 URL 처리
+========================================== */
 
-// ==========================================
-// 페이지가 열리면 분실물 목록 불러오기
-// ==========================================
+function getImageUrl(path) {
+
+    if (!path) {
+        return "";
+    }
+
+    // Cloudinary 등 인터넷 이미지
+    if (
+        path.startsWith("http://") ||
+        path.startsWith("https://")
+    ) {
+        return path;
+    }
+
+    // 예전 로컬 uploads 이미지
+    const fileName = path
+        .replaceAll("\\", "/")
+        .split("/")
+        .pop();
+
+    return (
+        API_URL +
+        "/uploads/" +
+        encodeURIComponent(fileName)
+    );
+}
+
+
+/* ==========================================
+   분실물 목록 불러오기
+========================================== */
 
 async function loadLostItems() {
 
@@ -410,38 +353,25 @@ async function loadLostItems() {
                 `${API_URL}/lost-items`
             );
 
-
         if (!response.ok) {
-
             throw new Error(
                 "분실물 목록을 불러오지 못했습니다."
             );
-
         }
-
 
         const items =
             await response.json();
-
 
         const select =
             document.getElementById(
                 "lostSelect"
             );
 
-
-        // 기존 목록 초기화
-
         select.innerHTML = `
-
             <option value="">
                 분실물을 선택해주세요
             </option>
-
         `;
-
-
-        // 분실물 목록 추가
 
         items.forEach(item => {
 
@@ -450,21 +380,14 @@ async function loadLostItems() {
                     "option"
                 );
 
-
             option.value =
                 item.id;
-
 
             option.textContent =
                 `${item.item_name} - ${item.location} (${item.lost_date})`;
 
-
-            select.appendChild(
-                option
-            );
-
+            select.appendChild(option);
         });
-
 
     }
     catch (error) {
@@ -474,35 +397,26 @@ async function loadLostItems() {
             error
         );
 
-
         alert(
             "분실물 목록을 불러오지 못했습니다."
         );
-
     }
-
 }
 
 
-
-// ==========================================
-// AI 매칭 시작
-// ==========================================
+/* ==========================================
+   AI 매칭 시작
+========================================== */
 
 async function startMatching() {
-
 
     const select =
         document.getElementById(
             "lostSelect"
         );
 
-
     const lostId =
         select.value;
-
-
-    // 분실물 선택 여부 확인
 
     if (!lostId) {
 
@@ -511,59 +425,38 @@ async function startMatching() {
         );
 
         return;
-
     }
-
 
     const button =
         document.getElementById(
             "matchButton"
         );
 
-
-    const lostInfo =
-        document.getElementById(
-            "lostInfo"
-        );
-
-
     const resultSection =
         document.getElementById(
             "resultSection"
         );
-
 
     const resultSummary =
         document.getElementById(
             "resultSummary"
         );
 
-
     const resultContainer =
         document.getElementById(
             "matchResults"
         );
 
-
-    // 버튼 비활성화
-
     button.disabled = true;
-
 
     button.textContent =
         "AI 분석 중...";
 
-
-    // 결과 화면 표시
-
     resultSection.style.display =
         "block";
 
-
     resultSummary.innerHTML = `
-
         <div class="loading-box">
-
             <h3>
                 AI가 이미지를 분석하고 있습니다.
             </h3>
@@ -571,32 +464,20 @@ async function startMatching() {
             <p>
                 등록된 습득물 사진과 비교하는 중입니다.
             </p>
-
         </div>
-
     `;
-
 
     resultContainer.innerHTML = "";
 
-
-
     try {
-
-
-        // ==================================
-        // AI 매칭 API 호출
-        // ==================================
 
         const response =
             await fetch(
                 `${API_URL}/match/${lostId}`
             );
 
-
         const data =
             await response.json();
-
 
         if (!response.ok) {
 
@@ -604,125 +485,89 @@ async function startMatching() {
                 data.detail ||
                 "AI 매칭에 실패했습니다."
             );
-
         }
-
-
-
-        // ==================================
-        // 선택한 분실물 표시
-        // ==================================
 
         showLostItem(
             data.lost_item
         );
 
-
-
-        // ==================================
-        // AI 결과 표시
-        // ==================================
-
         displayResults(
             data.matches
         );
 
-
     }
     catch (error) {
-
 
         console.error(
             "AI 매칭 오류:",
             error
         );
 
-
         resultSummary.innerHTML = `
-
             <div class="no-result">
-
                 <h3>
                     AI 매칭 오류
                 </h3>
 
                 <p>
-                    ${error.message}
+                    ${escapeHtml(error.message)}
                 </p>
-
             </div>
-
         `;
 
-
         resultContainer.innerHTML = "";
-
 
         alert(
             error.message
         );
-
     }
-
-
-    // 버튼 다시 활성화
 
     button.disabled = false;
 
-
     button.textContent =
         "AI 매칭 시작";
-
 }
 
 
-
-// ==========================================
-// 선택한 분실물 표시
-// ==========================================
+/* ==========================================
+   선택한 분실물 표시
+========================================== */
 
 function showLostItem(item) {
-
 
     const section =
         document.getElementById(
             "lostInfo"
         );
 
-
     const container =
         document.getElementById(
             "lostItemInfo"
         );
 
-
-    const imageFile =
-        getFileName(
+    const imageUrl =
+        getImageUrl(
             item.image_path
         );
-
 
     container.innerHTML = `
 
         <div class="selected-lost-card">
 
-
             <div class="selected-lost-image">
 
                 <img
-                    src="${API_URL}/uploads/${imageFile}"
+                    src="${escapeHtml(imageUrl)}"
                     alt="${escapeHtml(item.item_name)}"
                 >
 
             </div>
-
 
             <div class="selected-lost-info">
 
                 <h2>
                     ${escapeHtml(item.item_name)}
                 </h2>
-
 
                 <p>
                     <strong>
@@ -732,7 +577,6 @@ function showLostItem(item) {
                     ${escapeHtml(item.location)}
                 </p>
 
-
                 <p>
                     <strong>
                         분실 날짜:
@@ -740,7 +584,6 @@ function showLostItem(item) {
 
                     ${escapeHtml(item.lost_date)}
                 </p>
-
 
                 <p>
                     <strong>
@@ -756,40 +599,30 @@ function showLostItem(item) {
             </div>
 
         </div>
-
     `;
-
 
     section.style.display =
         "block";
-
 }
 
 
-
-// ==========================================
-// AI 매칭 결과 표시
-// ==========================================
+/* ==========================================
+   AI 매칭 결과 표시
+========================================== */
 
 function displayResults(matches) {
-
 
     const container =
         document.getElementById(
             "matchResults"
         );
 
-
     const summary =
         document.getElementById(
             "resultSummary"
         );
 
-
     container.innerHTML = "";
-
-
-    // 결과가 없는 경우
 
     if (
         !matches ||
@@ -797,7 +630,6 @@ function displayResults(matches) {
     ) {
 
         summary.innerHTML = `
-
             <div class="no-result">
 
                 <h3>
@@ -809,22 +641,15 @@ function displayResults(matches) {
                 </p>
 
             </div>
-
         `;
 
         return;
-
     }
-
-
-
-    // 결과 요약
 
     const topScore =
         Number(
             matches[0].similarity
         );
-
 
     summary.innerHTML = `
 
@@ -839,31 +664,20 @@ function displayResults(matches) {
             ${topScore}%
         </strong>
         입니다.
-
     `;
 
 
-
-    // 결과 카드 생성
-
     matches.forEach(
         (item, index) => {
-
 
             const similarity =
                 Number(
                     item.similarity
                 );
 
-
-            // ==================================
-            // 등급 결정
-            // ==================================
-
             let grade;
             let gradeText;
             let gradeColor;
-
 
             if (similarity >= 85) {
 
@@ -911,77 +725,45 @@ function displayResults(matches) {
 
                 gradeColor =
                     "#dc2626";
-
             }
-
-
-
-            // ==================================
-            // 순위
-            // ==================================
 
             let rank;
 
-
             if (index === 0) {
-
-                rank =
-                    "🥇 1위";
-
+                rank = "🥇 1위";
             }
             else if (index === 1) {
-
-                rank =
-                    "🥈 2위";
-
+                rank = "🥈 2위";
             }
             else if (index === 2) {
-
-                rank =
-                    "🥉 3위";
-
+                rank = "🥉 3위";
             }
             else {
-
-                rank =
-                    `${index + 1}위`;
-
+                rank = `${index + 1}위`;
             }
 
 
-
-            // ==================================
-            // 이미지 파일명
-            // ==================================
-
-            const imageFile =
-                getFileName(
+            /* 핵심 수정 부분 */
+            const imageUrl =
+                getImageUrl(
                     item.image_path
                 );
 
-
-
-            // ==================================
-            // 카드 생성
-            // ==================================
 
             const card =
                 document.createElement(
                     "div"
                 );
 
-
             card.className =
                 "match-card";
-
-
 
             card.innerHTML = `
 
                 <div class="match-card-image">
 
                     <img
-                        src="${API_URL}/uploads/${imageFile}"
+                        src="${escapeHtml(imageUrl)}"
                         alt="${escapeHtml(item.item_name)}"
                     >
 
@@ -990,45 +772,31 @@ function displayResults(matches) {
 
                 <div class="match-card-info">
 
-
                     <div class="match-card-top">
 
-
                         <span class="match-rank">
-
                             ${rank}
-
                         </span>
-
 
                         <span
                             class="match-grade"
                             style="
                                 background-color:${gradeColor};
-                            "
-                        >
-
+                            ">
                             ${grade}
-
                         </span>
-
 
                     </div>
 
 
-
                     <h3>
-
                         ${escapeHtml(
                             item.item_name
                         )}
-
                     </h3>
 
 
-
                     <p>
-
                         <strong>
                             습득 장소:
                         </strong>
@@ -1036,13 +804,10 @@ function displayResults(matches) {
                         ${escapeHtml(
                             item.location
                         )}
-
                     </p>
 
 
-
                     <p>
-
                         <strong>
                             습득 날짜:
                         </strong>
@@ -1050,13 +815,10 @@ function displayResults(matches) {
                         ${escapeHtml(
                             item.found_date
                         )}
-
                     </p>
 
 
-
                     <p>
-
                         <strong>
                             설명:
                         </strong>
@@ -1065,46 +827,29 @@ function displayResults(matches) {
                             item.description ||
                             "설명 없음"
                         )}
-
                     </p>
 
 
-
-                    <!-- AI 유사도 -->
-
                     <div class="similarity-box">
-
 
                         <div class="similarity-header">
 
-
                             <span class="similarity-title">
-
                                 AI 이미지 유사도
-
                             </span>
-
 
                             <span
                                 class="similarity-number"
                                 style="
                                     color:${gradeColor};
-                                "
-                            >
-
+                                ">
                                 ${similarity}%
-
                             </span>
-
 
                         </div>
 
 
-
-                        <!-- 진행률 -->
-
                         <div class="similarity-bar">
-
 
                             <div
                                 class="similarity-progress"
@@ -1117,84 +862,45 @@ function displayResults(matches) {
                                         100
                                     )}%;
                                     background-color:${gradeColor};
-                                "
-                            >
-
+                                ">
                             </div>
 
-
                         </div>
-
 
 
                         <div
                             class="similarity-description"
                             style="
                                 color:${gradeColor};
-                            "
-                        >
-
+                            ">
                             ${gradeText}
-
                         </div>
-
 
                     </div>
 
-
                 </div>
-
             `;
-
 
             container.appendChild(
                 card
             );
-
         }
     );
-
 }
 
 
-
-// ==========================================
-// 이미지 경로에서 파일명 추출
-// ==========================================
-
-function getFileName(path) {
-
-
-    if (!path) {
-
-        return "";
-
-    }
-
-
-    return path
-        .replaceAll("\\", "/")
-        .split("/")
-        .pop();
-
-}
-
-
-
-// ==========================================
-// HTML 특수문자 처리
-// ==========================================
+/* ==========================================
+   HTML 특수문자 처리
+========================================== */
 
 function escapeHtml(value) {
 
-
-    if (value === null ||
-        value === undefined) {
-
+    if (
+        value === null ||
+        value === undefined
+    ) {
         return "";
-
     }
-
 
     return String(value)
         .replaceAll("&", "&amp;")
@@ -1202,21 +908,16 @@ function escapeHtml(value) {
         .replaceAll(">", "&gt;")
         .replaceAll('"', "&quot;")
         .replaceAll("'", "&#039;");
-
 }
 
 
-
-// ==========================================
-// 페이지 시작
-// ==========================================
+/* ==========================================
+   페이지 시작
+========================================== */
 
 loadLostItems();
 
-
 </script>
 
-
 </body>
-
 </html>
