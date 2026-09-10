@@ -7,11 +7,8 @@ import os
 import shutil
 import cloudinary
 import cloudinary.uploader
-
-import torch
-from transformers import CLIPProcessor, CLIPModel
-from PIL import Image
-
+import replicate
+import math
 
 app = FastAPI()
 
