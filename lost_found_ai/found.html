@@ -41,6 +41,10 @@
                 습득물 등록
             </a>
 
+            <a href="match.html">
+                AI 매칭
+            </a>
+
             <a href="#">
                 로그인
             </a>
@@ -265,14 +269,14 @@
 
                 try {
 
-                    const response =
-                        await fetch(
-                            "http://127.0.0.1:8000/found-items",
-                            {
-                                method: "POST",
-                                body: formData
-                            }
-                        );
+                const response =
+                    await fetch(
+                        "https://lost-found-ai-0z75.onrender.com/found-items",
+                        {    
+                         method: "POST",
+                         body: formData
+                        }
+                    );
 
 
                     const result =
@@ -309,7 +313,7 @@
 
                     alert(
                         "서버에 연결할 수 없습니다.\n\n" +
-                        "FastAPI 서버가 실행 중인지 확인해주세요."
+                        "잠시 후 다시 시도해주세요."
                     );
 
                 }
