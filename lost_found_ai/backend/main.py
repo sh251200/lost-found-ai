@@ -7,8 +7,28 @@ import os
 import shutil
 import cloudinary
 import cloudinary.uploader
-import replicate
 import math
+import requests
+import numpy as np
+import onnxruntime as ort
+
+from PIL import Image
+from io import BytesIO
+
+from backend.download_model import download_model, MODEL_PATH
+
+# ==========================================
+# MobileCLIP2-S0 ONNX 모델 준비
+# ==========================================
+
+download_model()
+
+ai_session = ort.InferenceSession(
+    MODEL_PATH,
+    providers=["CPUExecutionProvider"]
+)
+
+print("MobileCLIP2-S0 ONNX 모델 로딩 완료")
 
 app = FastAPI()
 
@@ -64,10 +84,10 @@ def get_db():
 
 
 # ==========================================
-# AI 모델 설정 - Replicate CLIP API
+# AI 모델 설정 - MobileCLIP2 ONNX
 # ==========================================
 
-print("서버 시작 완료 - Replicate CLIP API 사용")
+print("서버 시작 완료 - MobileCLIP2 ONNX 사용")
 
 
 # ==========================================
@@ -76,18 +96,68 @@ print("서버 시작 완료 - Replicate CLIP API 사용")
 
 def get_image_features(image_url):
 
-    output = replicate.run(
-        "openai/clip",
-        input={
-            "image": image_url
+    response = requests.get(
+        image_url,
+        timeout=30
+    )
+
+    response.raise_for_status()
+
+    image = Image.open(
+        BytesIO(response.content)
+    ).convert("RGB")
+
+
+    # MobileCLIP2-S0 입력 크기
+    image = image.resize(
+        (256, 256)
+    )
+
+
+    # 0~255 → 0~1
+    image_array = np.array(
+        image,
+        dtype=np.float32
+    ) / 255.0
+
+
+    # HWC → CHW
+    image_array = np.transpose(
+        image_array,
+        (2, 0, 1)
+    )
+
+
+    # 배치 차원 추가
+    image_array = np.expand_dims(
+        image_array,
+        axis=0
+    )
+
+
+    # ONNX 실행
+    outputs = ai_session.run(
+        None,
+        {
+            "pixel_values":
+                image_array
         }
     )
 
-    if isinstance(output, dict) and "embedding" in output:
-        return output["embedding"]
 
-    raise Exception("Replicate에서 embedding을 받지 못했습니다.")
+    features = outputs[0][0]
 
+
+    # L2 정규화
+    norm = np.linalg.norm(
+        features
+    )
+
+    if norm != 0:
+        features = features / norm
+
+
+    return features.tolist()
 
 # ==========================================
 # 코사인 유사도 계산 함수
@@ -533,7 +603,7 @@ def match_lost_item(lost_id: int):
         )
 
 
-    # Replicate에서는 인터넷에서 접근 가능한 이미지 URL 필요
+    # Cloudinary 이미지 URL인지 확인
     if not (
         lost_image_url.startswith("http://") or
         lost_image_url.startswith("https://")
@@ -602,7 +672,7 @@ def match_lost_item(lost_id: int):
             continue
 
 
-        # 예전 uploads/... 이미지는 Replicate에서 접근 불가
+        # 예전 uploads/... 이미지는 제외
         if not (
             found_image_url.startswith("http://") or
             found_image_url.startswith("https://")
