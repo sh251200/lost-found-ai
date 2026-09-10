@@ -316,21 +316,12 @@ async def create_found_item(
 
 ):
 
-    file_name = image.filename
-
-    file_path = os.path.join(
-        UPLOAD_DIR,
-        file_name
+    upload_result = cloudinary.uploader.upload(
+        image.file,
+        folder="lost_found_ai/found"
     )
 
-
-    with open(file_path, "wb") as buffer:
-
-        shutil.copyfileobj(
-            image.file,
-            buffer
-        )
-
+    file_path = upload_result["secure_url"]
 
     db = get_db()
 
