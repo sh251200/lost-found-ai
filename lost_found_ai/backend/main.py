@@ -64,51 +64,54 @@ def get_db():
 
 
 # ==========================================
-# AI 모델 설정
+# AI 모델 설정 - Replicate CLIP API
 # ==========================================
 
-# Render 무료 서버 테스트를 위해
-# 서버 시작 시 CLIP 모델을 자동 로딩하지 않음
+print("서버 시작 완료 - Replicate CLIP API 사용")
 
-model = None
-processor = None
-
-print("서버 시작 완료 - AI 모델 로딩 보류")
 
 # ==========================================
 # 이미지 특징 추출 함수
 # ==========================================
 
-def get_image_features(image_path):
+def get_image_features(image_url):
 
-    image = Image.open(image_path).convert("RGB")
-
-    inputs = processor(
-        images=image,
-        return_tensors="pt"
+    output = replicate.run(
+        "openai/clip",
+        input={
+            "image": image_url
+        }
     )
 
-    with torch.no_grad():
+    if isinstance(output, dict) and "embedding" in output:
+        return output["embedding"]
 
-        features = model.get_image_features(
-            **inputs
-        )
+    raise Exception("Replicate에서 embedding을 받지 못했습니다.")
 
-        # transformers 버전에 따라
-        # 반환 형태가 다른 경우 처리
-        if hasattr(features, "pooler_output"):
-            features = features.pooler_output
 
-        elif hasattr(features, "image_embeds"):
-            features = features.image_embeds
+# ==========================================
+# 코사인 유사도 계산 함수
+# ==========================================
 
-    # 벡터 정규화
-    features = features / features.norm(
-        dim=-1,
-        keepdim=True
+def cosine_similarity(vector_a, vector_b):
+
+    dot_product = sum(
+        a * b
+        for a, b in zip(vector_a, vector_b)
     )
 
-    return features
+    norm_a = math.sqrt(
+        sum(a * a for a in vector_a)
+    )
+
+    norm_b = math.sqrt(
+        sum(b * b for b in vector_b)
+    )
+
+    if norm_a == 0 or norm_b == 0:
+        return 0.0
+
+    return dot_product / (norm_a * norm_b)
 
 
 # ==========================================
@@ -479,14 +482,7 @@ def delete_found_item(item_id: int):
 @app.get("/match/{lost_id}")
 def match_lost_item(lost_id: int):
 
-    print(
-        f"AI 매칭 시작 - 분실물 ID: {lost_id}"
-    )
-
-
-    # --------------------------------------
-    # 1. 분실물 가져오기
-    # --------------------------------------
+    print(f"AI 매칭 시작 - 분실물 ID: {lost_id}")
 
     db = get_db()
 
@@ -495,12 +491,15 @@ def match_lost_item(lost_id: int):
     )
 
 
+    # --------------------------------------
+    # 1. 분실물 가져오기
+    # --------------------------------------
+
     cursor.execute("""
         SELECT *
         FROM lost_items
         WHERE id = %s
     """, (lost_id,))
-
 
     lost_item = cursor.fetchone()
 
@@ -517,13 +516,13 @@ def match_lost_item(lost_id: int):
 
 
     # --------------------------------------
-    # 2. 분실물 이미지 경로
+    # 2. 분실물 이미지 확인
     # --------------------------------------
 
-    lost_image_path = lost_item["image_path"]
+    lost_image_url = lost_item["image_path"]
 
 
-    if not lost_image_path:
+    if not lost_image_url:
 
         cursor.close()
         db.close()
@@ -534,14 +533,18 @@ def match_lost_item(lost_id: int):
         )
 
 
-    if not os.path.exists(lost_image_path):
+    # Replicate에서는 인터넷에서 접근 가능한 이미지 URL 필요
+    if not (
+        lost_image_url.startswith("http://") or
+        lost_image_url.startswith("https://")
+    ):
 
         cursor.close()
         db.close()
 
         raise HTTPException(
-            status_code=404,
-            detail="분실물 이미지 파일을 찾을 수 없습니다."
+            status_code=400,
+            detail="기존 로컬 이미지입니다. Cloudinary로 등록한 새 분실물로 테스트해주세요."
         )
 
 
@@ -549,12 +552,25 @@ def match_lost_item(lost_id: int):
     # 3. 분실물 AI 특징 추출
     # --------------------------------------
 
-    print("분실물 이미지 분석 중...")
+    try:
 
+        print("분실물 이미지 AI 분석 중...")
 
-    lost_features = get_image_features(
-        lost_image_path
-    )
+        lost_features = get_image_features(
+            lost_image_url
+        )
+
+    except Exception as e:
+
+        cursor.close()
+        db.close()
+
+        print(f"분실물 AI 분석 실패: {e}")
+
+        raise HTTPException(
+            status_code=500,
+            detail=f"분실물 AI 분석 중 오류가 발생했습니다: {str(e)}"
+        )
 
 
     # --------------------------------------
@@ -566,7 +582,6 @@ def match_lost_item(lost_id: int):
         FROM found_items
         ORDER BY id DESC
     """)
-
 
     found_items = cursor.fetchall()
 
@@ -580,26 +595,30 @@ def match_lost_item(lost_id: int):
 
     for found_item in found_items:
 
-        found_image_path = found_item["image_path"]
+        found_image_url = found_item["image_path"]
 
 
-        if not found_image_path:
+        if not found_image_url:
             continue
 
 
-        if not os.path.exists(found_image_path):
+        # 예전 uploads/... 이미지는 Replicate에서 접근 불가
+        if not (
+            found_image_url.startswith("http://") or
+            found_image_url.startswith("https://")
+        ):
             continue
 
 
         try:
 
             print(
-                f"습득물 {found_item['id']} 분석 중..."
+                f"습득물 {found_item['id']} AI 분석 중..."
             )
 
 
             found_features = get_image_features(
-                found_image_path
+                found_image_url
             )
 
 
@@ -607,12 +626,12 @@ def match_lost_item(lost_id: int):
             # 코사인 유사도 계산
             # ----------------------------------
 
-            similarity = torch.sum(
-                lost_features * found_features
-            ).item()
+            similarity = cosine_similarity(
+                lost_features,
+                found_features
+            )
 
 
-            # 0~1 → 0~100%
             similarity_percent = (
                 similarity * 100
             )
@@ -620,7 +639,8 @@ def match_lost_item(lost_id: int):
 
             results.append({
 
-                "id": found_item["id"],
+                "id":
+                    found_item["id"],
 
                 "item_name":
                     found_item["item_name"],
@@ -648,12 +668,14 @@ def match_lost_item(lost_id: int):
         except Exception as e:
 
             print(
-                f"습득물 {found_item['id']} 분석 실패: {e}"
+                f"습득물 {found_item['id']} AI 분석 실패: {e}"
             )
+
+            continue
 
 
     # --------------------------------------
-    # 6. 유사도 높은 순으로 정렬
+    # 6. 유사도 높은 순 정렬
     # --------------------------------------
 
     results.sort(
@@ -673,9 +695,7 @@ def match_lost_item(lost_id: int):
     db.close()
 
 
-    print(
-        "AI 매칭 완료!"
-    )
+    print("AI 매칭 완료!")
 
 
     return {
